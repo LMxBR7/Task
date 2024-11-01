@@ -1,0 +1,74 @@
+create database Diwali;               *** USED THIS TO CREATE A DATABASE CALLED DIWALI***
+
+use diwali;                           ***USING THE DIWALI DATABASE TO CREATE NEW TABLES***
+
+CREATE TABLE employee (               ***THIS PART IS THE CREATION OF THE EMPLOYEE TABLE***
+    empid INT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    manager_id INT
+);
+
+CREATE TABLE manager (               ***THIS PART HANDLES THE CREATION OF MANAGER TABLE***
+    manager_id INT,
+    empid INT,
+    PRIMARY KEY (manager_id, empid),
+    FOREIGN KEY (manager_id) REFERENCES employee(empid),
+    FOREIGN KEY (empid) REFERENCES employee(empid)
+);
+
+INSERT INTO employee (empid, first_name, last_name, manager_id) VALUES      ***HERE I INSERTED THE VALUES INTO THE EMPLOYEE TABLE***
+(1, 'John', 'Doe', NULL),         
+(2, 'Jane', 'Smith', 1),           
+(3, 'Emily', 'Johnson', 1),        
+(4, 'Michael', 'Brown', 1),       
+(5, 'Chris', 'Davis', 2),          
+(6, 'Sarah', 'Miller', 2),         
+(7, 'Anna', 'Wilson', 3);
+
+INSERT INTO manager (manager_id, empid) VALUES                             ***HERE I INSERTED THE VALUES INTO THE MANAGER TABLE***
+(1, 2),  
+(1, 3),  
+(1, 4),  
+(2, 5),  
+(2, 6),  
+(3, 7);  
+
+select * from manager;                                                    ***JUST CHECKED THE ENTRIES ONCE***
+select * from employee;
+
+SELECT m.manager_id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name  ***QUERY TO GET ALL EMPLOYEES UNDER EACH MANAGER***
+FROM manager m
+INNER JOIN employee e ON m.empid = e.empid
+ORDER BY m.manager_id;
+
+SELECT manager_id,                                           ***QUERY TO CHECK HOW MANY EMPLOYEES ARE THERE UNDER EACH MANAGER***
+       (SELECT COUNT(empid)
+        FROM manager m2
+        WHERE m2.manager_id = m.manager_id) AS employee_count
+FROM manager m
+GROUP BY manager_id;
+
+SELECT e.empid, e.first_name, e.last_name                 ***QUERY TO GET ALL MANAGER DETAILS***
+FROM employee e
+WHERE EXISTS (SELECT 1
+              FROM manager m
+              WHERE m.manager_id = e.empid);
+              
+SELECT e.empid, e.first_name, e.last_name                 ***QUERY TO FIND WHICH EMPLOYEE HASNT BEEN ASSIGNED ANY MANAGER***
+FROM employee e 
+WHERE NOT EXISTS (SELECT 1
+                  FROM manager m
+                  WHERE m.empid = e.empid);
+
+
+DELIMITER //                                             ***FUNCTION TO GET FULL NAME OF EMPLOYEES***
+
+CREATE FUNCTION get_fullname(first_name VARCHAR(50), last_name VARCHAR(50))
+RETURNS VARCHAR(101)
+DETERMINISTIC
+BEGIN
+    RETURN CONCAT(first_name, ' ', last_name);
+END //
+
+DELIMITER ;
